@@ -67,7 +67,7 @@ object CessionChooser {
            }
        }
        
-       val totalWithLoss = resultList.map(_.valueWithLoses().toInt).sum
+       val totalWithLoss = resultList.map(_.valueWithLoses()).sum
        
        //Printing detailed info
         println(s"Required:${totalValue} TotalWithLoses:${totalWithLoss} AmountLeftByLoses:${totalValue - totalWithLoss} ")
