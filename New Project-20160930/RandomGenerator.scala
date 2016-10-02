@@ -12,7 +12,7 @@ object RandomGenerator {
     val values2001To10000 = () => { 2001 + Random.nextInt(8000)}
     val portion1To12 = () => { 1 + Random.nextInt(12) }
     val createLoses = (i:Int) => i match { 
-            case 1 => 0.1
+            case 1 => 0.10
             case 2 => 0.08
             case 3 => 0.06
             case 4 => 0.04
