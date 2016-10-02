@@ -3,7 +3,7 @@ import scala.util._
 
 object RandomGenerator {
    def main(args: Array[String]) {
-    val f = new File("generated2.csv")
+    val f = new File("generated.csv")
     val pw = new PrintWriter(f)
     
     def randomNextDouble(rangeMin:Int, rangeMax:Int):Double = (rangeMin + (rangeMax - rangeMin) * Random.nextDouble())
@@ -34,8 +34,8 @@ object RandomGenerator {
     }
     
     createRecords((1 to 1000), values50To700)
-    // createRecords((1001 to 9000), values701To2000)
-    // createRecords((9001 to 10000), values2001To10000)
+    createRecords((1001 to 9000), values701To2000)
+    createRecords((9001 to 10000), values2001To10000)
     
     //fechar o arquivo
     pw.close
