@@ -1,32 +1,39 @@
 import java.io._
 import scala.collection._
 import scala.collection.immutable.ListMap
+import scala.collection.immutable.Seq
+import scala.collection.mutable.ListBuffer
+import scala.math.BigDecimal
 
-case class Cession(id:Int, value:Int, portion:Int, loses:Double){
+case class Cession(id:Int, value:scala.math.BigDecimal, portion:Int, loses:Double){
     def valueWithLoses() = value - (value * loses)
 }
 
+
 object CessionChooser {
+   def scalaBigDecimal(a:String) = new scala.math.BigDecimal(new java.math.BigDecimal(a))
     
-    val sourceFile = "generated.csv" //sample.csv
+   val sourceFile = "generated.csv" //sample.csv
     
    def main(args: Array[String]) {
        val cessions = readAllCessionsFromStorage()
-       
        val list = chooseCession(cessions, 700000)
    }
    
    def chooseCession(cessionsToChoose:Seq[Cession], totalValue:Int):Seq[Cession] = {
+       val cessionGroupedUnsorted = cessionsToChoose.groupBy(_.loses) //group
+       val resultList = ListBuffer[Cession]()
+       val sortedKeys = cessionGroupedUnsorted.keySet.toSeq.sorted //sort to begin on the least element
+       var totalAdded = scalaBigDecimal("0.0")
        
-       val cessionsGrouped = ListMap(cessionsToChoose.groupBy(_.loses).toSeq.sortBy(_._1):_*)
-       val resultList = mutable.ListBuffer[Cession]()
-       var totalAdded = 0
+       println(sortedKeys)
+       println(s"Total Portions: ${sortedKeys.size}")
        
-       println(s"Keys:${cessionsGrouped.keySet.size}")
-        for ((key,cessions) <- cessionsGrouped; if totalAdded < totalValue) {
+        for (key <- sortedKeys; if totalAdded < totalValue) {
+           val cessions = cessionGroupedUnsorted(key)
            //preenche com todos os valores com as menores perdas até valor total
            for(cession <- cessions; if totalAdded < totalValue) {
-              val temp = totalAdded + cession.value
+              val temp = cession.value + totalAdded
               if (temp <= totalValue) {
                   totalAdded = temp
                   resultList += cession
@@ -39,7 +46,7 @@ object CessionChooser {
            //elementos da mesma categoria que não foram selecionados.
            val leftCessions = cessions.diff(resultList)
            if (leftCessions.size > 0) {
-               val totalLeft = totalValue - totalAdded // = 17
+               val totalLeft = totalValue - totalAdded
                println(s"Doing the last verifying (value left ${totalLeft})...")
                
                //Verifica na leftCession o elemento que tem o valor exato da diferença do valor total entre que há e o que valorTotal + diferença)
@@ -56,26 +63,30 @@ object CessionChooser {
                }
            }
        }
-       val totalWithLoss = resultList.map(_.valueWithLoses().toInt).sum
-       println(s"Required:${totalValue} TotalWithLoss:${totalWithLoss} AmountLeft:${totalValue - totalWithLoss} ")
-       println(s"Total Amount:${totalAdded} Total Cessions:${resultList.size}")
-       println(s"MaxLoses:${resultList.maxBy(_.loses).loses} MinLoses:${resultList.minBy(_.loses).loses}")
-       print(s"MaxValue:${resultList.maxBy(_.value).value}|${resultList.maxBy(_.valueWithLoses()).valueWithLoses}")
-       println(s"MinValue:${resultList.minBy(_.value).value}|${resultList.minBy(_.valueWithLoses()).valueWithLoses}")
-       println(s"MaxPortion:${resultList.maxBy(_.portion).portion} MinPortion:${resultList.minBy(_.portion).portion}")
        
-       return resultList
+       val totalWithLoss = resultList.map(_.valueWithLoses().toInt).sum
+       
+       //Printing detailed info
+        println(s"Required:${totalValue} TotalWithLoses:${totalWithLoss} AmountLeftByLoses:${totalValue - totalWithLoss} ")
+        println(s"Total Amount:${totalAdded} Total Cessions:${resultList.size}")
+        println(s"MaxLoses:${resultList.maxBy(_.loses).loses} MinLoses:${resultList.minBy(_.loses).loses}")
+        print(s"MaxValue:${resultList.maxBy(_.value).value}|${resultList.maxBy(_.valueWithLoses()).valueWithLoses}")
+        println(s"MinValue:${resultList.minBy(_.value).value}|${resultList.minBy(_.valueWithLoses()).valueWithLoses}")
+        println(s"MaxPortion:${resultList.maxBy(_.portion).portion} MinPortion:${resultList.minBy(_.portion).portion}")
+       
+       return resultList.toList
    }
    
    def readAllCessionsFromStorage():Seq[Cession] = {
         val bufferedSource = io.Source.fromFile(sourceFile)
-        val resultList = mutable.ListBuffer[Cession]()
+        // #http://docs.scala-lang.org/overviews/collections/performance-characteristics.html
+        val resultList = ListBuffer[Cession]()
         
         for (line <- bufferedSource.getLines) {
-           val cols = line.split(";").map(_.trim)
-           val cessionConverted = new Cession(cols(0).toInt, cols(1).toInt, cols(2).toInt, cols(3).toDouble)
-           resultList += cessionConverted // do the append #http://docs.scala-lang.org/overviews/collections/performance-characteristics.html
+            val cols = line.split(";").map(_.trim)
+            // do the append
+            resultList += new Cession(cols(0).toInt, scalaBigDecimal(cols(1)), cols(2).toInt, cols(3).toDouble)
         }
-        return resultList
+        return resultList.toList
    }
 }
