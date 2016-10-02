@@ -9,7 +9,6 @@ case class Cession(id:Int, value:scala.math.BigDecimal, portion:Int, loses:Doubl
     def valueWithLoses() = value - (value * loses)
 }
 
-
 object CessionChooser {
    def scalaBigDecimal(a:String) = new scala.math.BigDecimal(new java.math.BigDecimal(a))
     
@@ -83,7 +82,7 @@ object CessionChooser {
         val resultList = ListBuffer[Cession]()
         
         for (line <- bufferedSource.getLines) {
-            val cols = line.split(";").map(_.trim)
+            val cols = line.split(",").map(_.trim)
             // do the append
             resultList += new Cession(cols(0).toInt, scalaBigDecimal(cols(1)), cols(2).toInt, cols(3).toDouble)
         }
