@@ -29,7 +29,7 @@ object RandomGenerator {
             val portion = randomPortion()
             val value = randomValues()
             val loses = createLoses(portion)
-            pw.println(f"$a;$value%.2f;$portion;$loses%.2f")
+            pw.println(f"$a,$value%.2f,$portion,$loses%.2f")
         }
     }
     
