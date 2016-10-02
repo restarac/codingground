@@ -20,21 +20,21 @@ object CessionChooser {
     
    def main(args: Array[String]) {
        val cessions = readAllCessionsFromStorage()
-       val list = chooseCession(cessions, 700000)
+       val list = chooseCession(cessions, 10)
    }
    
    def chooseCession(cessionsToChoose:Seq[Cession], totalValue:Int):Seq[Cession] = {
        val cessionGroupedUnsorted = cessionsToChoose.groupBy(_.loses) //group
        val resultList = ListBuffer[Cession]()
-       val sortedKeys = cessionGroupedUnsorted.keySet.toSeq.sorted //sort to begin on the least element
+       val sortedKeys = cessionGroupedUnsorted.keySet.toSeq.sorted //sort the cessions to begin on the least element
        var totalAdded = scalaBigDecimal("0.0")
        
        println(sortedKeys)
        println(s"Total Portions: ${sortedKeys.size}")
-       
-        for (key <- sortedKeys; if totalAdded < totalValue) {
+        
+        for (key <- sortedKeys; if totalAdded < totalValue) { // loop with guards
            val cessions = cessionGroupedUnsorted(key)
-           //preenche com todos os valores com as menores perdas até valor total
+           //preenche com todos os valores, com as menores perdas, até atingir o valor total
            for(cession <- cessions; if totalAdded < totalValue) {
               val temp = cession.value + totalAdded
               if (temp <= totalValue) {
@@ -48,11 +48,11 @@ object CessionChooser {
            
            //elementos da mesma categoria que não foram selecionados.
            val leftCessions = cessions.diff(resultList)
-           if (leftCessions.size > 0) {
+           if (leftCessions.size > 0 && resultList.size > 0) {
                val totalLeft = totalValue - totalAdded
                println(s"Doing the last verifying (value left ${totalLeft})...")
                
-               //Verifica na leftCession o elemento que tem o valor exato da diferença do valor total entre que há e o que valorTotal + diferença)
+               //Para cada leftCession, verifica se há na cessions um elemento com valorLeft + cession.value igual ao leftcession.value
                for(leftCession <- leftCessions; if totalAdded < totalValue) {
                    for(cession <- cessions; if totalAdded < totalValue) {
                        if (leftCession.value == cession.value + totalLeft) {
@@ -67,15 +67,16 @@ object CessionChooser {
            }
        }
        
-       val totalWithLoss = resultList.map(_.valueWithLoses()).sum
-       
        //Printing detailed info
+       val totalWithLoss = resultList.map(_.valueWithLoses()).sum
         println(s"Required:${totalValue} TotalWithLoses:${totalWithLoss} AmountLeftByLoses:${totalValue - totalWithLoss} ")
-        println(s"Total Amount:${totalAdded} Total Cessions:${resultList.size}")
-        println(s"MaxLoses:${resultList.maxBy(_.loses).loses} MinLoses:${resultList.minBy(_.loses).loses}")
-        print(s"MaxValue:${resultList.maxBy(_.value).value}|${resultList.maxBy(_.valueWithLoses()).valueWithLoses}")
-        println(s"MinValue:${resultList.minBy(_.value).value}|${resultList.minBy(_.valueWithLoses()).valueWithLoses}")
-        println(s"MaxPortion:${resultList.maxBy(_.portion).portion} MinPortion:${resultList.minBy(_.portion).portion}")
+        if (resultList.size > 0) {
+            println(s"Total Amount:${totalAdded} Total Cessions:${resultList.size}")
+            println(s"MaxLoses:${resultList.maxBy(_.loses).loses} MinLoses:${resultList.minBy(_.loses).loses}")
+            print(s"MaxValue:${resultList.maxBy(_.value).value}|${resultList.maxBy(_.valueWithLoses()).valueWithLoses}")
+            println(s"MinValue:${resultList.minBy(_.value).value}|${resultList.minBy(_.valueWithLoses()).valueWithLoses}")
+            println(s"MaxPortion:${resultList.maxBy(_.portion).portion} MinPortion:${resultList.minBy(_.portion).portion}")
+        }
        
        return resultList.toList
    }
