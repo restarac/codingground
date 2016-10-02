@@ -5,6 +5,10 @@ import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
 import scala.math.BigDecimal
 
+//id - identificador unico
+//value - valor em real
+//portion - numero de parcela
+//loses - perdas em percentual
 case class Cession(id:Int, value:scala.math.BigDecimal, portion:Int, loses:Double){
     def valueWithLoses() = value - (value * loses)
 }
