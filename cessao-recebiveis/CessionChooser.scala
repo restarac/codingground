@@ -20,10 +20,10 @@ object CessionChooser {
     
    def main(args: Array[String]) {
        val cessions = readAllCessionsFromStorage()
-       val list = chooseCession(cessions, 10)
+       val list = chooseCession(cessions, 700000)
    }
    
-   def chooseCession(cessionsToChoose:Seq[Cession], totalValue:Int):Seq[Cession] = {
+   def chooseCession(cessionsToChoose:Seq[Cession], valueRequest:Int):Seq[Cession] = {
        val cessionGroupedUnsorted = cessionsToChoose.groupBy(_.loses) //group
        val resultList = ListBuffer[Cession]()
        val sortedKeys = cessionGroupedUnsorted.keySet.toSeq.sorted //sort the cessions to begin on the least element
@@ -32,12 +32,12 @@ object CessionChooser {
        println(sortedKeys)
        println(s"Total Portions: ${sortedKeys.size}")
         
-        for (key <- sortedKeys; if totalAdded < totalValue) { // loop with guards
+        for (key <- sortedKeys; if totalAdded < valueRequest) { // loop with guards
            val cessions = cessionGroupedUnsorted(key)
            //preenche com todos os valores, com as menores perdas, até atingir o valor total
-           for(cession <- cessions; if totalAdded < totalValue) {
+           for(cession <- cessions; if totalAdded < valueRequest) {
               val temp = cession.value + totalAdded
-              if (temp <= totalValue) {
+              if (temp <= valueRequest) {
                   totalAdded = temp
                   resultList += cession
               }
@@ -49,12 +49,12 @@ object CessionChooser {
            //elementos da mesma categoria que não foram selecionados.
            val leftCessions = cessions.diff(resultList)
            if (leftCessions.size > 0 && resultList.size > 0) {
-               val totalLeft = totalValue - totalAdded
+               val totalLeft = valueRequest - totalAdded
                println(s"Doing the last verifying (value left ${totalLeft})...")
                
                //Para cada leftCession, verifica se há na cessions um elemento com valorLeft + cession.value igual ao leftcession.value
-               for(leftCession <- leftCessions; if totalAdded < totalValue) {
-                   for(cession <- cessions; if totalAdded < totalValue) {
+               for(leftCession <- leftCessions; if totalAdded < valueRequest) {
+                   for(cession <- cessions; if totalAdded < valueRequest) {
                        if (leftCession.value == cession.value + totalLeft) {
                            //substitui o adicionado anteriormente
                            println(s"Best replace found! Removed:${cession} Add:${leftCession}")
@@ -69,7 +69,7 @@ object CessionChooser {
        
        //Printing detailed info
        val totalWithLoss = resultList.map(_.valueWithLoses()).sum
-        println(s"Required:${totalValue} TotalWithLoses:${totalWithLoss} AmountLeftByLoses:${totalValue - totalWithLoss} ")
+        println(s"Required:${valueRequest} TotalWithLoses:${totalWithLoss} AmountLeftByLoses:${valueRequest - totalWithLoss} ")
         if (resultList.size > 0) {
             println(s"Total Amount:${totalAdded} Total Cessions:${resultList.size}")
             println(s"MaxLoses:${resultList.maxBy(_.loses).loses} MinLoses:${resultList.minBy(_.loses).loses}")
